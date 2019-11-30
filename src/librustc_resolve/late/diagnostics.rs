@@ -216,6 +216,39 @@ impl<'a> LateResolutionVisitor<'a, '_> {
             }
         }
         if path.len() == 1 && self.self_type_is_available(span) {
+            let mut has_self_arg = false;
+            match source {
+                PathSource::Expr(parent) => match &parent.as_ref().map(|p| &p.kind) {
+                    Some(ExprKind::Call(_, args)) => {
+                        if let Some(first_arg) = args.first() {
+                            let mut expr_kind = &first_arg.kind;
+                            loop {
+                                match expr_kind {
+                                    ExprKind::Path(_, arg_name) if arg_name.segments.len() == 1 => {
+                                        has_self_arg = arg_name.segments[0].ident.name == kw::SelfLower;
+                                        break;
+                                    },
+                                    ExprKind::AddrOf(_, _, expr) => { expr_kind = &expr.kind; }
+                                    _ => break,
+                                }
+                            }
+                        }
+                    }
+                    _ => (),
+                },
+                _ => (),
+            };
+
+            if has_self_arg {
+                err.span_suggestion(
+                    span,
+                    &"try calling method instead of passing `self` as parameter",
+                    format!("self.{}", path_str),
+                    Applicability::MachineApplicable,
+                );
+                return (err, candidates);
+            }
+
             if let Some(candidate) = self.lookup_assoc_candidate(ident, ns, is_expected) {
                 let self_is_available = self.self_value_is_available(path[0].ident.span, span);
                 match candidate {
@@ -553,13 +586,13 @@ impl<'a> LateResolutionVisitor<'a, '_> {
         // Look for associated items in the current trait.
         if let Some((module, _)) = self.current_trait_ref {
             if let Ok(binding) = self.r.resolve_ident_in_module(
-                    ModuleOrUniformRoot::Module(module),
-                    ident,
-                    ns,
-                    &self.parent_scope,
-                    false,
-                    module.span,
-                ) {
+                ModuleOrUniformRoot::Module(module),
+                ident,
+                ns,
+                &self.parent_scope,
+                false,
+                module.span,
+            ) {
                 let res = binding.res();
                 if filter_fn(res) {
                     return Some(if self.r.has_self.contains(&res.def_id()) {

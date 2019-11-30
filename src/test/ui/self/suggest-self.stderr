@@ -8,7 +8,7 @@ LL |         this.x
    |         help: did you mean: `self`
 
 error[E0425]: cannot find value `this` in this scope
-  --> $DIR/suggest-self.rs:26:9
+  --> $DIR/suggest-self.rs:27:9
    |
 LL |         this.foo()
    |         ^^^^
@@ -17,7 +17,7 @@ LL |         this.foo()
    |         help: did you mean: `self`
 
 error[E0425]: cannot find value `my` in this scope
-  --> $DIR/suggest-self.rs:31:9
+  --> $DIR/suggest-self.rs:33:9
    |
 LL |         my.bar()
    |         ^^

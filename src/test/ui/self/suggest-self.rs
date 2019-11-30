@@ -20,16 +20,19 @@ impl Foo {
     fn foo(&self) -> i32 {
         this.x
         //~^ ERROR cannot find value `this` in this scope
+        //~| HELP did you mean
     }
 
     fn bar(&self) -> i32 {
         this.foo()
         //~^ ERROR cannot find value `this` in this scope
+        //~| HELP did you mean
     }
 
     fn baz(&self) -> i32 {
         my.bar()
         //~^ ERROR cannot find value `my` in this scope
+        //~| HELP did you mean
     }
 }
 

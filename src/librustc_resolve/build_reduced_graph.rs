@@ -730,8 +730,8 @@ impl<'a, 'b> BuildReducedGraphVisitor<'a, 'b> {
             // These items live in both the type and value namespaces.
             ItemKind::Struct(ref struct_def, _) => {
                 // Define a name in the type namespace.
-                let def_id = self.r.definitions.local_def_id(item.id);
-                let res = Res::Def(DefKind::Struct, def_id);
+                let item_def_id = self.r.definitions.local_def_id(item.id);
+                let res = Res::Def(DefKind::Struct, item_def_id);
                 self.r.define(parent, ident, TypeNS, (res, vis, sp, expansion));
 
                 let mut ctor_vis = vis;
@@ -755,7 +755,6 @@ impl<'a, 'b> BuildReducedGraphVisitor<'a, 'b> {
                     }
                     respan(field.span, field.ident.map_or(kw::Invalid, |ident| ident.name))
                 }).collect();
-                let item_def_id = self.r.definitions.local_def_id(item.id);
                 self.insert_field_names(item_def_id, field_names);
 
                 // If this is a tuple or unit struct, define a name
@@ -771,7 +770,8 @@ impl<'a, 'b> BuildReducedGraphVisitor<'a, 'b> {
             }
 
             ItemKind::Union(ref vdata, _) => {
-                let res = Res::Def(DefKind::Union, self.r.definitions.local_def_id(item.id));
+                let item_def_id = self.r.definitions.local_def_id(item.id);
+                let res = Res::Def(DefKind::Union, item_def_id);
                 self.r.define(parent, ident, TypeNS, (res, vis, sp, expansion));
 
                 // Record field names for error reporting.
@@ -779,7 +779,6 @@ impl<'a, 'b> BuildReducedGraphVisitor<'a, 'b> {
                     self.resolve_visibility(&field.vis);
                     respan(field.span, field.ident.map_or(kw::Invalid, |ident| ident.name))
                 }).collect();
-                let item_def_id = self.r.definitions.local_def_id(item.id);
                 self.insert_field_names(item_def_id, field_names);
             }
 
